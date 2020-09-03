@@ -15,12 +15,14 @@ getBuildParams() {
       echo "${MTAG}|${strippedTag}-master"
     done
   else
+    # Top 9 x.y.z (from top 3 x.y)
     TAGS=$(curl 'https://registry.hub.docker.com/v2/repositories/library/nginx/tags?page_size=1024&name=alpine' 2>/dev/null | grep -Po '"name":"([0-9]+\.[0-9]+-alpine)"' | cut -d'"' -f4 | cut -d'-' -f1 | sort -r | uniq | head -n3 | while read minor; do curl 'https://registry.hub.docker.com/v2/repositories/library/nginx/tags?page_size=1024&name=alpine' 2>/dev/null | grep -Po "\"name\":\"(${minor}\.[0-9]+-alpine)\"" | cut -d'"' -f4 | sort -r | uniq | head -n3; done)
     for MTAG in $(echo "$TAGS" | grep -v "master"); do
       strippedTag=$(echo "${MTAG}" | cut -d'-' -f1)
       echo "${MTAG}|${strippedTag}-v${RELEASE}"
     done
 
+    # Top 3 x.y
     TAGS=$(curl 'https://registry.hub.docker.com/v2/repositories/library/nginx/tags?page_size=1024&name=alpine' 2>/dev/null | grep -Po '"name":"([0-9]+\.[0-9]+-alpine)"' | cut -d'"' -f4 | sort -r | uniq | head -n3)
     for MTAG in $(echo "$TAGS" | grep -v "master"); do
       strippedTag=$(echo "${MTAG}" | cut -d'-' -f1)
