@@ -1,0 +1,15 @@
+#!/bin/bash
+
+
+SCRIPT_DIR="$(dirname "$0")"
+source "${SCRIPT_DIR}/common"
+
+echo docker build --build-arg NGINX_VERSION=${NGINX_VERSION} -f $DOCKERFILE_PATH -t ${IMAGE_NAME} .
+docker build --build-arg NGINX_VERSION=${NGINX_VERSION} -f $DOCKERFILE_PATH -t ${IMAGE_NAME} .
+
+for BUILD_PARAMS in $(getBuildParams $IS_MASTER_BUILD); do
+  FROM=$(echo $BUILD_PARAMS | cut -d'|' -f1)
+  TAG=$(echo $BUILD_PARAMS | cut -d'|' -f2)
+  echo docker build --build-arg NGINX_VERSION=${FROM} -f ${DOCKERFILE_PATH} -t ${DOCKER_REPO}:${TAG} .
+  docker build --build-arg NGINX_VERSION=${FROM} -f ${DOCKERFILE_PATH} -t ${DOCKER_REPO}:${TAG} .
+done

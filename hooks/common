@@ -1,0 +1,22 @@
+#!/bin/bash
+
+
+IS_MASTER_BUILD=$([ "$SOURCE_BRANCH" == "master" ] && echo 1 || echo 0)
+
+# return list of "<fromTag>|<targetTag>" depending if we are building against master or a specific release
+getBuildParams() {
+  local RELEASE=$(echo $SOURCE_BRANCH | cut -c2-)
+  local TAGS=$(curl 'https://registry.hub.docker.com/v2/repositories/library/nginx/tags?page_size=1024&name=alpine' 2>/dev/null | grep -Po '"name":"([0-9]+\.[0-9]+-alpine)"' | cut -d'"' -f4 | sort -r | uniq)
+
+  if [ $IS_MASTER_BUILD -eq 1 ]; then
+    for MTAG in $(echo "$TAGS" | grep "master"); do
+      strippedTag=$(echo "${MTAG}" | cut -d'-' -f1)
+      echo "${MTAG}|${strippedTag}-master"
+    done
+  else
+    for MTAG in $(echo "$TAGS" | grep -v "master"); do
+      strippedTag=$(echo "${MTAG}" | cut -d'-' -f1)
+      echo "${MTAG}|${strippedTag}-${RELEASE}"
+    done
+  fi
+}
